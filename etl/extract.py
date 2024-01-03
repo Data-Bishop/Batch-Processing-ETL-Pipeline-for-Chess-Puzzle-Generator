@@ -7,18 +7,18 @@ import yaml
 # Define function to load last timestamp in config
 def load_last_timestamp():
     try:
-        with open('../config/last_timestamp.txt', 'r') as timestamp_file:
+        with open('config/last_timestamp.txt', 'r') as timestamp_file:
             return timestamp_file.read().strip()
     except FileNotFoundError:
         return None
 
 # Define function to save timestamp to config
 def save_last_timestamp(timestamp):
-    with open('../config/last_timestamp.txt', 'w') as timestamp_file:
+    with open('config/last_timestamp.txt', 'w') as timestamp_file:
         timestamp_file.write(str(timestamp))
 
 # Read api config file
-with open('../config/api_config.yml', 'r') as config_file:
+with open('config/api_config.yml', 'r') as config_file:
     api_config = yaml.safe_load(config_file)
 
 # Get lichess api url from config file
