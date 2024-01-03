@@ -1,0 +1,5 @@
+chesscom:
+  api_url: "https://api.chess.com/pub/player"
+
+lichess:
+  api_url: "https://lichess.org/api/games/user"
