@@ -73,11 +73,14 @@ def extract_data(username):
     lichess_data = fetch_lichess_data(username)
 
     if lichess_data is not None:
-        timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
-        output_filename = f"data/raw/{username}_data_{timestamp}.json"
+        if not lichess_data:
+            logging.info(f"No new data on Lichess for user {username} since the last extraction.")
+        else:
+            timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+            output_filename = f"data/raw/{username}_data_{timestamp}.json"
 
-        with open(output_filename, 'w') as output_file:
-            json.dump({'lichess': lichess_data}, output_file)
+            with open(output_filename, 'w') as output_file:
+                json.dump({'lichess': lichess_data}, output_file)
 
 if __name__ == "__main__":
     try:
