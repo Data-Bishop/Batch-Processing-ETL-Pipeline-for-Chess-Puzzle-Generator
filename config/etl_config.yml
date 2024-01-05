@@ -1,0 +1,8 @@
+pyspark:
+  master: "local[*]"  # Set to "yarn" or a Spark cluster URL in a production environment
+  executor_memory: "2g"
+  num_executors: 4
+
+data:
+  raw_data_path: "data/raw/"
+  transformed_data_path: "data/transformed/"
