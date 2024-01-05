@@ -81,7 +81,7 @@ def extract_data(username):
 
             with open(output_filename, 'w') as output_file:
                 json.dump({'lichess': lichess_data}, output_file)
-
+o
 if __name__ == "__main__":
     try:
         username = lichess_username
