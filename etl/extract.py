@@ -44,9 +44,7 @@ def fetch_lichess_data(username):
             "max":2,
             "perfType": "ultraBullet, bullet, blitz",
             "analysed": True,
-            "pgnInJson": True,
             "clocks": True,
-            "evals": True,
             "opening": True,
             "sort": "dateAsc"
         }
