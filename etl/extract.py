@@ -41,7 +41,7 @@ def fetch_lichess_data(username):
         params = {
             "since": since,
             "until": until,
-            "max":2,
+            "max":1,
             "perfType": "ultraBullet, bullet, blitz",
             "analysed": True,
             "clocks": True,
@@ -56,11 +56,11 @@ def fetch_lichess_data(username):
             save_last_timestamp(until) # Save the current timestamp for future requests
 
         # Process NDJSON response
-        lichess_data = []
-        for line in response.iter_lines():
-            if line:
-                lichess_data.append(json.loads(line.decode('utf-8')))
-
+        #lichess_data = []
+        #for line in response.iter_lines():
+        #    if line:
+        #        lichess_data.append(json.loads(line.decode('utf-8')))
+        lichess_data = response.json()
         return lichess_data
     except requests.exceptions.RequestException as e:
         logging.error(f"Failed to fetch data from Lichess for user {username}. Error: {e}")
