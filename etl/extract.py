@@ -1,5 +1,5 @@
 import requests
-import json
+import ndjson
 from datetime import datetime, timedelta
 import os
 import yaml
@@ -21,68 +21,70 @@ def save_last_timestamp(timestamp):
     with open('config/last_timestamp.txt', 'w') as timestamp_file:
         timestamp_file.write(str(timestamp))
 
-# Read api config file
-with open('config/api_config.yml', 'r') as config_file:
-    api_config = yaml.safe_load(config_file)
-
-# Get lichess api url from config file
-lichess_api_url = api_config['lichess']['api_url']
-lichess_username = api_config['lichess']['user']
+# Read api config
+def load_config():
+    with open('config/api_config.yml', 'r') as config_file:
+        return yaml.safe_load(config_file)
 
 # Define function to fetch data from lichess
-def fetch_lichess_data(username):
+def fetch_lichess_data(url, username):
+
+    since = load_last_timestamp()
+    until = datetime.now().strftime("%Y%m%d%H%M%S")
+
+    url = f"{url}/{username}"
+    headers = {"Accept": "application/x-ndjson"}
+    params = {
+        "since": since,
+        "until": until,
+        "max":3,
+        "perfType": "ultraBullet, bullet, blitz",
+        "analysed": True,
+        "clocks": True,
+        "opening": True,
+        "sort": "dateAsc"
+        }
     
     try:
-        since = load_last_timestamp()
-        until = datetime.now().strftime("%Y%m%d%H%M%S")
-        
-        url = f"{lichess_api_url}/{username}"    
-        headers = {"Accept": "application/x-ndjson"}
-        params = {
-            "since": since,
-            "until": until,
-            "max":1,
-            "perfType": "ultraBullet, bullet, blitz",
-            "analysed": True,
-            "clocks": True,
-            "opening": True,
-            "sort": "dateAsc"
-        }
-        
-        response = requests.get(url, params=params, headers=headers, stream=True)
+        # Get api response
+        response = requests.get(url, params=params, headers=headers)
         response.raise_for_status() # Raise an HTTPError for bad responses
         
         if response.status_code == 200:
             save_last_timestamp(until) # Save the current timestamp for future requests
 
-        # Process NDJSON response
-        #lichess_data = []
-        #for line in response.iter_lines():
-        #    if line:
-        #        lichess_data.append(json.loads(line.decode('utf-8')))
-        lichess_data = response.json()
+        # Process ND-JSON response
+        lichess_data = response.json(cls=ndjson.Decoder)
+
         return lichess_data
     except requests.exceptions.RequestException as e:
         logging.error(f"Failed to fetch data from Lichess for user {username}. Error: {e}")
         return None
 
 # Define function to extract data
-def extract_data(username):
-    lichess_data = fetch_lichess_data(username)
+def extract_data():
+    # Get lichess api url from config file
+    api_config = load_config()
+    lichess_api_url = api_config['lichess']['api_url']
+    lichess_username = api_config['lichess']['user']
+    
+    lichess_data = fetch_lichess_data(lichess_api_url, lichess_username)
 
     if lichess_data is not None:
         if not lichess_data:
-            logging.info(f"No new data on Lichess for user {username} since the last extraction.")
+            logging.info(f"No new data on Lichess for user {lichess_username} since the last extraction.")
         else:
             timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
-            output_filename = f"data/raw/{username}_data_{timestamp}.json"
+            output_filename = f"data/raw/{lichess_username}_data_{timestamp}.ndjson"
 
             with open(output_filename, 'w') as output_file:
-                json.dump({'lichess': lichess_data}, output_file)
+                writer = ndjson.writer(output_file, ensure_ascii=False)
+                
+                for data in lichess_data:
+                    writer.writerow(data)
 
 if __name__ == "__main__":
     try:
-        username = lichess_username
-        extract_data(username)
+        extract_data()
     except Exception as e:
         logging.error(f"An unexpected error occurred: {e}")
